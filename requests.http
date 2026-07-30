@@ -1,0 +1,23 @@
+### API1: 카드기본정보(목록)조회
+GET http://localhost:9090/v2.0/cards?bank_tran_id=T1001&user_seq_no=1000000001&bank_code_std=004&member_bank_code=004
+Authorization: Bearer test-token
+
+### API2: 카드청구정보조회
+GET http://localhost:9090/v2.0/cards/bills?bank_tran_id=T1002&user_seq_no=1000000001&bank_code_std=004&member_bank_code=004&from_month=202506&to_month=202507
+Authorization: Bearer test-token
+
+### API3: 계좌 잔액조회
+GET http://localhost:9090/v2.0/account/balance/fin_num?bank_tran_id=T1003&fintech_use_num=123456789012345678901234&bank_code_std=004
+Authorization: Bearer test-token
+
+### API4: 계좌 거래내역조회 (inquiry_base=D, 날짜 단위)
+GET http://localhost:9090/v2.0/account/transaction_list/fin_num?bank_tran_id=T1004&fintech_use_num=123456789012345678901234&inquiry_type=A&inquiry_base=D&from_date=20250601&to_date=20250731&sort_order=D&tran_dtime=20260730140000
+Authorization: Bearer test-token
+
+### API4: 계좌 거래내역조회 (inquiry_base=T, 시간 단위)
+GET http://localhost:9090/v2.0/account/transaction_list/fin_num?bank_tran_id=T1004b&fintech_use_num=123456789012345678901234&inquiry_type=A&inquiry_base=T&from_date=20250705&from_time=140000&to_date=20250705&to_time=150000&sort_order=A&tran_dtime=20260730140000
+Authorization: Bearer test-token
+
+### Authorization 헤더 형식 오류 확인용 (401 예상)
+GET http://localhost:9090/v2.0/cards?bank_tran_id=T1005&user_seq_no=1000000001&bank_code_std=004&member_bank_code=004
+Authorization: token-without-bearer-prefix

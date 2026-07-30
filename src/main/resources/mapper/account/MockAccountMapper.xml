@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.via.shinviamock.account.mapper.MockAccountMapper">
+
+    <select id="selectAccountByFintechUseNum" resultType="com.via.shinviamock.account.dto.response.AccountBalanceResponse">
+        SELECT
+            user_seq_no,
+            bank_code_tran,
+            bank_name,
+            balance_amt,
+            available_amt,
+            account_type,
+            product_name
+        FROM mock_bank_account
+        WHERE fintech_use_num = #{fintechUseNum}
+    </select>
+
+    <select id="selectTransactions" resultType="com.via.shinviamock.account.dto.response.TransactionDto">
+        SELECT
+            t.tran_date,
+            t.tran_time,
+            t.inout_type,
+            t.tran_type,
+            t.print_content AS printed_content,
+            t.tran_amt,
+            t.after_balance_amt
+        FROM mock_bank_transaction t
+        JOIN mock_bank_account a ON a.mock_account_id = t.mock_account_id
+        WHERE a.fintech_use_num = #{fintechUseNum}
+          <if test="inquiryBase == 'T'.toString()">
+              AND TIMESTAMP(t.tran_date, t.tran_time) BETWEEN
+                  STR_TO_DATE(CONCAT(#{fromDate}, #{fromTime}), '%Y%m%d%H%i%s') AND
+                  STR_TO_DATE(CONCAT(#{toDate}, #{toTime}), '%Y%m%d%H%i%s')
+          </if>
+          <if test="inquiryBase != 'T'.toString()">
+              AND t.tran_date BETWEEN #{fromDate} AND #{toDate}
+          </if>
+          <if test="inquiryType == 'I'.toString()">
+              AND t.inout_type = '입금'
+          </if>
+          <if test="inquiryType == 'O'.toString()">
+              AND t.inout_type = '출금'
+          </if>
+        ORDER BY t.tran_date
+          <choose>
+              <when test="sortOrder == 'A'.toString()">ASC</when>
+              <otherwise>DESC</otherwise>
+          </choose>
+          , t.tran_time
+          <choose>
+              <when test="sortOrder == 'A'.toString()">ASC</when>
+              <otherwise>DESC</otherwise>
+          </choose>
+    </select>
+
+</mapper>
