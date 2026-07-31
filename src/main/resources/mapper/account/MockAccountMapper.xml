@@ -53,4 +53,53 @@
           </choose>
     </select>
 
+    <select id="selectMyDataAccounts" resultType="com.via.shinviamock.account.dto.mydata.AccountItem">
+        SELECT account_num, is_consent, seqno, is_foreign_deposit, prod_name, is_minus, account_type, account_status
+        FROM mock_account
+        WHERE org_code = #{orgCode}
+        ORDER BY account_num, seqno
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countMyDataAccounts" resultType="int">
+        SELECT COUNT(*) FROM mock_account WHERE org_code = #{orgCode}
+    </select>
+
+    <select id="selectMyDataRegDate" resultType="string">
+        SELECT DATE_FORMAT(MIN(reg_date), '%Y%m%d') FROM mock_account WHERE org_code = #{orgCode}
+    </select>
+
+    <select id="selectDepositBasics" resultType="com.via.shinviamock.account.dto.mydata.DepositBasicItem">
+        SELECT b.currency_code, b.saving_method,
+               DATE_FORMAT(b.issue_date, '%Y%m%d') AS issue_date,
+               DATE_FORMAT(b.exp_date, '%Y%m%d') AS exp_date,
+               b.commit_amt, b.monthly_paid_in_amt
+        FROM mock_account_basic b
+        JOIN mock_account a ON a.account_num = b.account_num AND a.seqno = b.seqno
+        WHERE a.org_code = #{orgCode} AND b.account_num = #{accountNum}
+        <if test="seqno != null and seqno != ''">AND b.seqno = #{seqno}</if>
+    </select>
+
+    <select id="selectDepositDetails" resultType="com.via.shinviamock.account.dto.mydata.DepositDetailItem">
+        SELECT d.currency_code, d.balance_amt, d.withdrawable_amt, d.offered_rate, d.last_paid_in_cnt
+        FROM mock_account_detail d
+        JOIN mock_account a ON a.account_num = d.account_num AND a.seqno = d.seqno
+        WHERE a.org_code = #{orgCode} AND d.account_num = #{accountNum}
+        <if test="seqno != null and seqno != ''">AND d.seqno = #{seqno}</if>
+    </select>
+
+    <select id="selectDepositTransactions" resultType="com.via.shinviamock.account.dto.mydata.DepositTransactionItem">
+        SELECT t.trans_dtime, t.trans_no, t.trans_type, t.trans_class, t.currency_code,
+               t.trans_amt, t.balance_amt, t.paid_in_cnt, t.trans_memo,
+               t.category_code AS category
+        FROM mock_account_transaction t
+        JOIN mock_account a ON a.account_num = t.account_num AND a.seqno = t.seqno
+        WHERE a.org_code = #{orgCode}
+          AND t.account_num = #{accountNum}
+          AND t.trans_dtime BETWEEN CONCAT(#{fromDate}, '000000') AND CONCAT(#{toDate}, '235959')
+          <if test="seqno != null and seqno != ''">AND t.seqno = #{seqno}</if>
+        ORDER BY t.trans_dtime DESC, t.trans_no DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
 </mapper>
