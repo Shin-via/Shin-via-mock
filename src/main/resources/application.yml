@@ -2,17 +2,22 @@ spring:
   application:
     name: Shinvia-mock
   datasource:
-    url: jdbc:mysql://localhost:3307/mock_openbanking
+    url: jdbc:mysql://localhost:4000/Shinvia
     username: root
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
   jackson:
     property-naming-strategy: SNAKE_CASE
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 server:
   port: 9090
 
 mybatis:
+  type-aliases-package: com.via.shinviamock.card.dto.response
   mapper-locations: classpath:mapper/**/*.xml
   configuration:
     map-underscore-to-camel-case: true

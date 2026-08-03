@@ -8,7 +8,9 @@ import com.via.shinviamock.account.dto.response.*;
 import com.via.shinviamock.account.dto.mydata.*;
 import com.via.shinviamock.account.mapper.MockAccountMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -20,6 +22,9 @@ public class MockAccountService {
 
     public AccountBalanceResponse getAccountBalance(String bankTranId, String fintechUseNum, String bankCodeStd) {
         AccountBalanceResponse response = mockAccountMapper.selectAccountByFintechUseNum(fintechUseNum);
+        if (response == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found for fintech_use_num: " + fintechUseNum);
+        }
         String userSeqNo = response.getUserSeqNo();
         response.setSuccessHeader(bankTranId, bankCodeStd, userSeqNo, null);
         return response;
@@ -31,6 +36,9 @@ public class MockAccountService {
                                                               String tranDtime, String beforInquiryTraceInfo) {
         // tran_dtime(요청일시)은 요청 메타데이터일 뿐 조회 조건으로 사용하지 않음
         AccountBalanceResponse accountInfo = mockAccountMapper.selectAccountByFintechUseNum(fintechUseNum);
+        if (accountInfo == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found for fintech_use_num: " + fintechUseNum);
+        }
         List<TransactionDto> transactions = mockAccountMapper.selectTransactions(
                 fintechUseNum, inquiryType, inquiryBase, fromDate, fromTime, toDate, toTime, sortOrder);
 
@@ -38,7 +46,7 @@ public class MockAccountService {
         response.setSuccessHeader(bankTranId, accountInfo.getBankCodeTran(), accountInfo.getUserSeqNo(), beforInquiryTraceInfo);
         response.setBalanceAmt(accountInfo.getBalanceAmt());
         response.setResList(transactions);
-        response.setPageRecordCnt(transactions.size());
+        response.setPageRecordCnt(transactions != null ? transactions.size() : 0);
         return response;
     }
 

@@ -12,22 +12,22 @@ public class MockCardService {
 
     private final MockCardMapper mockCardMapper;
 
-    public CardListResponse getCardList(String bankTranId, String userSeqNo, String bankCodeStd,
+    public CardListResponse getCardList(String bankTranId, String ci, String bankCodeStd,
                                          String memberBankCode, String beforInquiryTraceInfo) {
        CardListResponse response = new CardListResponse();
-        response.setSuccessHeader(bankTranId, bankCodeStd, userSeqNo, beforInquiryTraceInfo);
-        response.setCardList(mockCardMapper.selectCardList(userSeqNo, bankCodeStd));
+        response.setSuccessHeader(bankTranId, bankCodeStd, ci, beforInquiryTraceInfo);
+        response.setCardList(mockCardMapper.selectCardList(ci, bankCodeStd));
         response.setCardCnt(response.getCardList().size());
         return response;
     }
 
-    public CardBillResponse getCardBills(String bankTranId, String userSeqNo, String bankCodeStd,
+    public CardBillResponse getCardBills(String bankTranId, String ci, String bankCodeStd,
                                           String memberBankCode, String fromMonth, String toMonth,
                                           String beforInquiryTraceInfo) {
 
         CardBillResponse response = new CardBillResponse();
-        response.setSuccessHeader(bankTranId, bankCodeStd, userSeqNo, beforInquiryTraceInfo);
-        response.setBillList(mockCardMapper.selectCardBills(userSeqNo, bankCodeStd, fromMonth, toMonth));
+        response.setSuccessHeader(bankTranId, bankCodeStd, ci, beforInquiryTraceInfo);
+        response.setBillList(mockCardMapper.selectCardBills(ci, bankCodeStd, fromMonth, toMonth));
         response.setBillCnt(response.getBillList().size());
         return response;
     }

@@ -2,14 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.via.shinviamock.card.mapper.MockCardMapper">
 
-    <select id="selectCardList" resultType="com.via.shinviamock.card.dto.response.CardInfoDto">
+    <select id="selectCardList" resultType="CardInfoDto">
         SELECT
             card_id,
             card_num_masked,
             card_name,
             card_member_type
         FROM mock_card_info
-        WHERE user_seq_no = #{userSeqNo}
+        WHERE ci = #{ci}
           AND bank_code_std = #{bankCodeStd}
         ORDER BY card_id
     </select>
@@ -25,7 +25,7 @@
             b.credit_check_type
         FROM mock_card_bill b
         JOIN mock_card_info c ON b.card_id = c.card_id
-        WHERE b.user_seq_no = #{userSeqNo}
+        WHERE b.ci = #{ci}
           AND c.bank_code_std = #{bankCodeStd}
           AND b.charge_month BETWEEN #{fromMonth} AND #{toMonth}
         ORDER BY b.charge_month, b.card_id, b.settlement_seq_no
