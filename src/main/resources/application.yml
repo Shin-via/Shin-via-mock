@@ -2,9 +2,9 @@ spring:
   application:
     name: Shinvia-mock
   datasource:
-    url: jdbc:mysql://localhost:3307/mock_openbanking
+    url: jdbc:mysql://localhost:3306/mock_openbanking
     username: root
-    password: 1234
+    password: star30431!
     driver-class-name: com.mysql.cj.jdbc.Driver
   jackson:
     property-naming-strategy: SNAKE_CASE
@@ -16,3 +16,10 @@ mybatis:
   mapper-locations: classpath:mapper/**/*.xml
   configuration:
     map-underscore-to-camel-case: true
+
+external:
+  finlife:
+    base-url: http://finlife.fss.or.kr/finlifeapi
+    auth-key: ${FINLIFE_API_KEY}
+    top-fin-grp-no: "020000"
+
