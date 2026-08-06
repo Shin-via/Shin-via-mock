@@ -17,9 +17,3 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
 
-external:
-  finlife:
-    base-url: http://finlife.fss.or.kr/finlifeapi
-    auth-key: ${FINLIFE_API_KEY}
-    top-fin-grp-no: "020000"
-
