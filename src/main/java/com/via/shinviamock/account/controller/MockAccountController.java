@@ -64,7 +64,7 @@ public class MockAccountController {
         validateAuthorization(authorization);
         return mockAccountService.getAccountBalance(bankTranId, fintechUseNum, bankCodeStd);
     }
-
+//
     @GetMapping("/v2.0/account/transaction_list/fin_num")
     public AccountTransactionResponse getAccountTransactions(@RequestHeader("Authorization") String authorization,
                                                               @RequestParam("bank_tran_id") String bankTranId,
