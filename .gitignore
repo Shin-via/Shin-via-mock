@@ -39,3 +39,5 @@ logs/
 postman_collection.json
 Claude.md
 CODEX.md
+
+src/main/resources/application.yml

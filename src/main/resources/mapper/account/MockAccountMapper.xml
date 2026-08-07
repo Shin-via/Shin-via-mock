@@ -4,7 +4,7 @@
 
     <select id="selectAccountByFintechUseNum" resultType="com.via.shinviamock.account.dto.response.AccountBalanceResponse">
         SELECT
-            user_seq_no,
+            ci AS user_seq_no,
             bank_code_tran,
             bank_name,
             balance_amt,

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.via.shinviamock.connection.mapper.MockConnectionMapper">
+
+    <select id="selectClientByClientId" resultType="com.via.shinviamock.connection.dto.MockClientDto">
+        SELECT
+            client_idx,
+            org_code,
+            org_name,
+            client_id,
+            client_secret,
+            redirect_uri,
+            created_at
+        FROM mock_clients
+        WHERE client_id = #{clientId}
+    </select>
+
+    <insert id="insertAuthorization" useGeneratedKeys="true" keyProperty="connectionId" keyColumn="connection_id"
+            parameterType="com.via.shinviamock.connection.dto.MockAuthorizationDto">
+        INSERT INTO mock_authorizations (
+            ci,
+            org_code,
+            code,
+            app_scheme,
+            is_used,
+            expires_at,
+            created_at
+        ) VALUES (
+            #{ci},
+            #{orgCode},
+            #{code},
+            #{appScheme},
+            #{isUsed},
+            #{expiresAt},
+            NOW()
+        )
+    </insert>
+
+    <select id="selectAuthorizationByCode" resultType="com.via.shinviamock.connection.dto.MockAuthorizationDto">
+        SELECT
+            connection_id,
+            ci,
+            org_code,
+            code,
+            app_scheme,
+            is_used,
+            expires_at,
+            created_at
+        FROM mock_authorizations
+        WHERE code = #{code}
+    </select>
+
+    <update id="updateAuthorizationUsed">
+        UPDATE mock_authorizations
+        SET is_used = true
+        WHERE connection_id = #{connectionId}
+    </update>
+
+    <insert id="insertTransaction" useGeneratedKeys="true" keyProperty="transactionId" keyColumn="transaction_id"
+            parameterType="com.via.shinviamock.connection.dto.MockTransactionDto">
+        INSERT INTO mock_transactions (
+            x_api_tran_id,
+            connection_id,
+            state,
+            api_url,
+            created_at
+        ) VALUES (
+            #{xApiTranId},
+            #{connectionId},
+            #{state},
+            #{apiUrl},
+            NOW()
+        )
+    </insert>
+
+    <select id="countTransactionByTranId" resultType="int">
+        SELECT COUNT(*) FROM mock_transactions WHERE x_api_tran_id = #{tranId}
+    </select>
+
+</mapper>

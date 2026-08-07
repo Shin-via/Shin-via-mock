@@ -84,8 +84,8 @@ public class MockAccountController {
     }
 
     private void validateAuthorization(String authorization) {
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorization header must be in 'Bearer <token>' format");
+        if (authorization == null || authorization.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authorization 헤더가 누락되었습니다.");
         }
     }
 
