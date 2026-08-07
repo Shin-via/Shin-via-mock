@@ -1,7 +1,6 @@
 package com.via.shinviamock.connection.service;
 
 import com.via.shinviamock.connection.dto.AuthTokenResponseDto;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,6 @@ import java.util.concurrent.TimeUnit;
  * Key: at:{ci} -> Value: accessToken 문자열 (1시간 TTL)
  * Key: rt:{ci} -> Value: refreshToken 문자열 (1년 TTL)
  */
-@Slf4j
 @Service
 public class MockTokenRedisService {
 
@@ -41,11 +39,6 @@ public class MockTokenRedisService {
 
         if (redisTemplate != null) {
             try {
-                // Key: at:{ci} -> Value: accessToken 문자열 (TTL 1시간)
-                redisTemplate.opsForValue().set("at:" + effectiveCi, accessToken, accessTokenExpiresIn, TimeUnit.SECONDS);
-                // Key: rt:{ci} -> Value: refreshToken 문자열 (TTL 1년)
-                redisTemplate.opsForValue().set("rt:" + effectiveCi, refreshToken, refreshTokenExpiresIn, TimeUnit.SECONDS);
-
                 // 양방향 4개 Key-Value 저장 (TTL: Access 1시간, Refresh 1년)
                 // 1) ci : accesstoken
                 redisTemplate.opsForValue().set("mydata:ci:at:" + effectiveCi, accessToken, accessTokenExpiresIn, TimeUnit.SECONDS);
@@ -56,7 +49,6 @@ public class MockTokenRedisService {
                 // 4) refreshtoken : ci
                 redisTemplate.opsForValue().set("mydata:rt:ci:" + refreshToken, effectiveCi, refreshTokenExpiresIn, TimeUnit.SECONDS);
             } catch (Exception e) {
-                log.warn("Redis 토큰 저장 연동 실패, 인메모리 폴백 저장소를 사용합니다: {}", e.getMessage());
                 atStore.put(effectiveCi, accessToken);
                 rtStore.put(effectiveCi, refreshToken);
             }
@@ -80,7 +72,8 @@ public class MockTokenRedisService {
             throw new IllegalArgumentException("유효하지 않거나 만료된 refresh_token입니다.");
         }
 
-        String cleanToken = refreshToken.startsWith("Bearer ") ? refreshToken.substring(7) : refreshToken;
+        //String cleanToken = refreshToken.startsWith("Bearer ") ? refreshToken.substring(7) : refreshToken;
+        String cleanToken =  refreshToken;
         String ci = extractCiFromToken(cleanToken);
 
         if (ci == null) {
@@ -90,16 +83,13 @@ public class MockTokenRedisService {
         String storedRt = null;
         if (redisTemplate != null) {
             try {
-                storedRt = redisTemplate.opsForValue().get("rt:" + ci);
+                storedRt = redisTemplate.opsForValue().get(ci);
             } catch (Exception e) {
-                log.warn("Redis 조회 실패, 인메모리 저장소 조회: {}", e.getMessage());
             }
         }
-
         if (storedRt == null) {
             storedRt = rtStore.get(ci);
         }
-
         if (storedRt == null || !storedRt.equals(cleanToken)) {
             throw new IllegalArgumentException("유효하지 않거나 만료된 refresh_token입니다.");
         }
@@ -127,7 +117,6 @@ public class MockTokenRedisService {
             try {
                 storedAt = redisTemplate.opsForValue().get("at:" + ci);
             } catch (Exception e) {
-                log.warn("Redis 조회 실패: {}", e.getMessage());
             }
         }
 
@@ -141,18 +130,32 @@ public class MockTokenRedisService {
 
         return null;
     }
-    //토큰 폐기
+    //토큰 폐기 (Access Token만 삭제 / Refresh Token은 유지)
     public void revokeToken(String token) {
         if (token == null) return;
         String cleanToken = token.startsWith("Bearer ") ? token.substring(7) : token;
         String ci = extractCiFromToken(cleanToken);
 
-        if (ci != null) {
+        if (ci == null) return;
+
+        if (cleanToken.startsWith("mock_at_")) {
+            // Access Token만 삭제 (Refresh Token은 살려둠)
+            if (redisTemplate != null) {
+                try {
+                    redisTemplate.delete("at:" + ci);
+                    redisTemplate.delete("mydata:ci:at:" + ci);
+                    redisTemplate.delete("mydata:at:ci:" + cleanToken);
+                } catch (Exception e) {
+                }
+            }
+            atStore.remove(ci);
+        } else {
+            // Refresh Token이거나 전체 폐기인 경우 전체 삭제
             revokeTokenByCi(ci);
         }
     }
 
-    //토큰 폐기후 레디스에서 데이터 삭제
+    //토큰 폐기후 레디스에서 데이터 삭제 (전체 삭제)
     public void revokeTokenByCi(String ci) {
         if (ci == null) return;
 
@@ -163,7 +166,6 @@ public class MockTokenRedisService {
                 redisTemplate.delete("mydata:ci:at:" + ci);
                 redisTemplate.delete("mydata:ci:rt:" + ci);
             } catch (Exception e) {
-                log.warn("Redis CI 기반 토큰 삭제 실패: {}", e.getMessage());
             }
         }
 
@@ -174,10 +176,10 @@ public class MockTokenRedisService {
     //토큰으로 ci 추출
     private String extractCiFromToken(String token) {
         if (token == null) return null;
-        if (token.startsWith("mock_at_") || token.startsWith("mock_rt_")) {
+        if (token.startsWith("mock_rt_") || token.startsWith("mock_at_")) {
             int prefixLen = 8; // "mock_at_" 또는 "mock_rt_"
             int uuidLen = 33;  // "_" + 32자리 UUID
-            if (token.length() > prefixLen + uuidLen) {
+            if (token.length() >= prefixLen + uuidLen) {
                 return token.substring(prefixLen, token.length() - uuidLen);
             }
         }

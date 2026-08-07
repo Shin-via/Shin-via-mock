@@ -5,12 +5,23 @@
     <select id="selectCardList" resultType="CardInfoDto">
         SELECT
             card_id,
-            card_num_masked,
+            bank_code_std,
+            card_number_masked,
             card_name,
             card_member_type
         FROM mock_card_info
         WHERE ci = #{ci}
-          AND bank_code_std = #{bankCodeStd}
+        ORDER BY card_id
+    </select>
+    <select id="selectCardListByBank" resultType="CardInfoDto">
+        SELECT
+        card_id,
+        card_num_masked,
+        card_name,
+        card_member_type
+        FROM mock_card_info
+        WHERE ci = #{ci}
+        AND bank_code_std = #{bankCodeStd}
         ORDER BY card_id
     </select>
 

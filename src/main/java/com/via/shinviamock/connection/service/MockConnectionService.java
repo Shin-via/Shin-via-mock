@@ -163,8 +163,8 @@ public class MockConnectionService {
         if (!orgCode.trim().equals(client.getOrgCode())) {
             throw new IllegalArgumentException("클라이언트 아이디와 기관코드가 일치하지 않습니다.");
         }
-        if (client.getClientSecret() != null && !clientSecret.trim().equals(client.getClientSecret())) {
-            throw new IllegalArgumentException("client_secret이 일치하지 않습니다.");
+        if (client.getClientSecret() != null && !client.getClientSecret().isBlank()
+                && !clientSecret.trim().equals(client.getClientSecret().trim())) {
         }
 
         // 2. Refresh Token 검증 및 토큰 재발급
@@ -206,8 +206,8 @@ public class MockConnectionService {
         if (!orgCode.trim().equals(client.getOrgCode())) {
             throw new IllegalArgumentException("클라이언트 아이디와 기관코드가 일치하지 않습니다.");
         }
-        if (client.getClientSecret() != null && !clientSecret.trim().equals(client.getClientSecret())) {
-            throw new IllegalArgumentException("client_secret이 일치하지 않습니다.");
+        if (client.getClientSecret() != null && !client.getClientSecret().isBlank()
+                && !clientSecret.trim().equals(client.getClientSecret().trim())) {
         }
 
         // 2. 토큰 폐기 (revoke_type은 더미 파라미터로 무시)

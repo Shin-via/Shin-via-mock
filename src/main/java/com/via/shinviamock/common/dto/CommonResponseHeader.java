@@ -33,4 +33,7 @@ public class CommonResponseHeader {
         this.nextPageYn = "N";
         this.beforInquiryTraceInfo = beforInquiryTraceInfo == null ? "" : beforInquiryTraceInfo;
     }
+    public void setSucccessHeaderForList(String xApiTranId){
+        this.apiTranId = xApiTranId;
+    }
 }

@@ -26,12 +26,12 @@ public class MockConnectionController {
     public ResponseEntity<?> authorize(
             @RequestHeader(value = "x-user-ci", required = false) String userCi,
             @RequestHeader(value = "x-api-tran-id", required = false, defaultValue = "MOCK_TRAN_1234567890") String tranId,
+            @RequestParam(value = "org_code", required = false) String orgCode,
             @RequestParam(value = "response_type", required = false, defaultValue = "code") String responseType,
             @RequestParam(value = "client_id", required = false) String clientId,
             @RequestParam(value = "redirect_uri") String redirectUri,
-            @RequestParam(value = "org_code", required = false) String orgCode,
-            @RequestParam(value = "state", required = false) String state,
-            @RequestParam(value = "app_scheme", required = false) String appScheme) {
+            @RequestParam(value = "app_scheme", required = false) String appScheme,
+           @RequestParam(value = "state", required = false) String state) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("x-api-tran-id", tranId);

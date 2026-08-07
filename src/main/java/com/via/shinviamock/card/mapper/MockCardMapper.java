@@ -10,9 +10,9 @@ import java.util.List;
 @Mapper
 public interface MockCardMapper {
 
-    List<CardInfoDto> selectCardList(@Param("ci") String ci,
-                                      @Param("bankCodeStd") String bankCodeStd);
-
+    List<CardInfoDto> selectCardList(@Param("ci") String ci);
+    List<CardInfoDto> selectCardListByBank(@Param("ci") String ci,
+                                     @Param("bankCodeStd") String bankCodeStd);
     List<CardBillDto> selectCardBills(@Param("ci") String ci,
                                        @Param("bankCodeStd") String bankCodeStd,
                                        @Param("fromMonth") String fromMonth,
