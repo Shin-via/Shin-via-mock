@@ -2,18 +2,18 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.via.shinviamock.card.mapper.MockCardMapper">
 
-    <select id="selectCardList" resultType="CardInfoDto">
+    <select id="selectCardList" resultType="com.via.shinviamock.card.dto.response.CardInfoDto">
         SELECT
             card_id,
             bank_code_std,
-            card_number_masked,
+            card_num_masked,
             card_name,
             card_member_type
         FROM mock_card_info
         WHERE ci = #{ci}
         ORDER BY card_id
     </select>
-    <select id="selectCardListByBank" resultType="CardInfoDto">
+    <select id="selectCardListByBank" resultType="com.via.shinviamock.card.dto.response.CardInfoDto">
         SELECT
         card_id,
         card_num_masked,
@@ -40,6 +40,48 @@
           AND c.bank_code_std = #{bankCodeStd}
           AND b.charge_month BETWEEN #{fromMonth} AND #{toMonth}
         ORDER BY b.charge_month, b.card_id, b.settlement_seq_no
+    </select>
+
+    <select id="selectMyDataCards" resultType="com.via.shinviamock.card.dto.mydata.CardItem">
+        SELECT card_id, card_num_masked AS card_num, card_name
+        FROM mock_card_info
+        WHERE ci = #{ci}
+        ORDER BY card_id
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectMyDataCard" resultType="com.via.shinviamock.card.dto.mydata.CardBasicItem">
+        SELECT is_trans_payable, is_cash_card, linked_bank_code, account_num,
+               card_brand, annual_fee, issue_date
+        FROM mock_card_info
+        WHERE ci = #{ci}
+          AND card_id = #{cardId}
+    </select>
+
+    <select id="selectMyDataBills" resultType="com.via.shinviamock.card.dto.mydata.CardBillItem">
+        SELECT CAST(settlement_seq_no AS CHAR) AS seqno,
+               SUM(charge_amt) AS charge_amt,
+               LPAD(settlement_day, 2, '0') AS charge_day,
+               charge_month,
+               settlement_date AS paid_out_date
+        FROM mock_card_bill
+        WHERE ci = #{ci}
+          AND charge_month BETWEEN #{fromMonth} AND #{toMonth}
+        GROUP BY charge_month, settlement_seq_no, settlement_day, settlement_date
+        ORDER BY charge_month, settlement_seq_no
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectMyDataBillDetails" resultType="com.via.shinviamock.card.dto.mydata.CardBillDetailItem">
+        SELECT d.card_id, d.paid_dtime, d.trans_no, d.paid_amt, d.currency_code,
+               d.merchant_name, d.merchant_regno, d.credit_fee_amt,
+               d.total_install_cnt, d.cur_install_cnt, d.balance_amt, d.prod_type
+        FROM mock_card_bill_detail d
+        INNER JOIN mock_card_info c ON c.card_id = d.card_id
+        WHERE c.ci = #{ci}
+          AND d.charge_month = #{chargeMonth}
+        ORDER BY d.paid_dtime, d.mock_bill_detail_id
+        LIMIT #{limit}
     </select>
 
 </mapper>

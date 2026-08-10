@@ -17,4 +17,19 @@ public interface MockCardMapper {
                                        @Param("bankCodeStd") String bankCodeStd,
                                        @Param("fromMonth") String fromMonth,
                                        @Param("toMonth") String toMonth);
+
+    List<com.via.shinviamock.card.dto.mydata.CardItem> selectMyDataCards(@Param("ci") String ci,
+                                                                           @Param("limit") int limit);
+
+    com.via.shinviamock.card.dto.mydata.CardBasicItem selectMyDataCard(@Param("ci") String ci,
+                                                                         @Param("cardId") String cardId);
+
+    List<com.via.shinviamock.card.dto.mydata.CardBillItem> selectMyDataBills(@Param("ci") String ci,
+                                                                                @Param("fromMonth") String fromMonth,
+                                                                                @Param("toMonth") String toMonth,
+                                                                                @Param("limit") int limit);
+
+    List<com.via.shinviamock.card.dto.mydata.CardBillDetailItem> selectMyDataBillDetails(@Param("ci") String ci,
+                                                                                            @Param("chargeMonth") String chargeMonth,
+                                                                                            @Param("limit") int limit);
 }
