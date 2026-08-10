@@ -35,14 +35,6 @@ public class MockAccountController {
 
 
         String cleanToken = authorization.startsWith("Bearer ") ? authorization.substring(7).trim() : authorization.trim();
-        log.info(cleanToken);
-        log.info(xApiTranId);
-        log.info(xApiType);
-        log.info(orgCode);
-        log.info(searchTimestamp);
-        log.info(nextPage);
-        log.info(""+limit);
-
         BankAccountsRequest request = new BankAccountsRequest();
         request.setAuthorization(cleanToken);
         request.setXApiTranId(xApiTranId);
