@@ -39,6 +39,18 @@ public class MockTokenRedisService {
 
         if (redisTemplate != null) {
             try {
+                // 기존 CI에 발급된 토큰이 있는 경우, 기존 토큰의 역방향 매핑 키(mydata:at:ci:{oldAt}, mydata:rt:ci:{oldRt}) 및 구 키(at:{ci}, rt:{ci}) 삭제
+                String oldAccessToken = redisTemplate.opsForValue().get("mydata:ci:at:" + effectiveCi);
+                String oldRefreshToken = redisTemplate.opsForValue().get("mydata:ci:rt:" + effectiveCi);
+                if (oldAccessToken != null) {
+                    redisTemplate.delete("mydata:at:ci:" + oldAccessToken);
+                }
+                if (oldRefreshToken != null) {
+                    redisTemplate.delete("mydata:rt:ci:" + oldRefreshToken);
+                }
+                redisTemplate.delete("at:" + effectiveCi);
+                redisTemplate.delete("rt:" + effectiveCi);
+
                 // 양방향 4개 Key-Value 저장 (TTL: Access 1시간, Refresh 1년)
                 // 1) ci : accesstoken
                 redisTemplate.opsForValue().set("mydata:ci:at:" + effectiveCi, accessToken, accessTokenExpiresIn, TimeUnit.SECONDS);
@@ -68,33 +80,35 @@ public class MockTokenRedisService {
 
      //Refresh Token을 이용한 Access Token 재발급
     public AuthTokenResponseDto refreshAccessToken(String refreshToken, String orgCode) {
-        if (refreshToken == null) {
+        if (refreshToken == null || refreshToken.isBlank()) {
             throw new IllegalArgumentException("유효하지 않거나 만료된 refresh_token입니다.");
         }
 
-        //String cleanToken = refreshToken.startsWith("Bearer ") ? refreshToken.substring(7) : refreshToken;
-        String cleanToken =  refreshToken;
-        String ci = extractCiFromToken(cleanToken);
+        String cleanToken = refreshToken.startsWith("Bearer ") ? refreshToken.substring(7).trim() : refreshToken.trim();
+        String ci = null;
 
-        if (ci == null) {
-            throw new IllegalArgumentException("유효하지 않은 refresh_token 형식입니다.");
-        }
-
-        String storedRt = null;
         if (redisTemplate != null) {
             try {
-                storedRt = redisTemplate.opsForValue().get(ci);
+                ci = redisTemplate.opsForValue().get("mydata:rt:ci:" + cleanToken);
             } catch (Exception e) {
             }
         }
-        if (storedRt == null) {
-            storedRt = rtStore.get(ci);
+
+        if (ci == null) {
+            ci = extractCiFromToken(cleanToken);
+            if (ci != null) {
+                String storedRt = rtStore.get(ci);
+                if (storedRt != null && !storedRt.equals(cleanToken)) {
+                    ci = null;
+                }
+            }
         }
-        if (storedRt == null || !storedRt.equals(cleanToken)) {
+
+        if (ci == null || ci.isBlank()) {
             throw new IllegalArgumentException("유효하지 않거나 만료된 refresh_token입니다.");
         }
 
-        // 새 토큰 발급 (issueToken 호출 시 at:{ci}, rt:{ci}가 새 토큰과 만료시간으로 자동 덮어씌워짐)
+        // 새 토큰 발급 (issueToken 호출 시 기존 토큰 역방향 매핑 삭제 및 4개 키 신규 저장)
         return issueToken(ci, orgCode);
     }
 
@@ -108,50 +122,59 @@ public class MockTokenRedisService {
     public String getCiByAccessToken(String accessToken) {
         if (accessToken == null) return null;
         String cleanToken = accessToken.startsWith("Bearer ") ? accessToken.substring(7) : accessToken;
-        String ci = extractCiFromToken(cleanToken);
 
-        if (ci == null) return null;
-
-        String storedAt = null;
         if (redisTemplate != null) {
             try {
-                storedAt = redisTemplate.opsForValue().get("at:" + ci);
+                String ci = redisTemplate.opsForValue().get("mydata:at:ci:" + cleanToken);
+                if (ci != null && !ci.isBlank()) {
+                    return ci;
+                }
             } catch (Exception e) {
             }
         }
 
-        if (storedAt == null) {
-            storedAt = atStore.get(ci);
-        }
-
-        if (storedAt != null && storedAt.equals(cleanToken)) {
-            return ci;
+        String ci = extractCiFromToken(cleanToken);
+        if (ci != null) {
+            String storedAt = atStore.get(ci);
+            if (storedAt != null && storedAt.equals(cleanToken)) {
+                return ci;
+            }
         }
 
         return null;
     }
+
     //토큰 폐기 (Access Token만 삭제 / Refresh Token은 유지)
     public void revokeToken(String token) {
         if (token == null) return;
         String cleanToken = token.startsWith("Bearer ") ? token.substring(7) : token;
         String ci = extractCiFromToken(cleanToken);
 
-        if (ci == null) return;
-
         if (cleanToken.startsWith("mock_at_")) {
-            // Access Token만 삭제 (Refresh Token은 살려둠)
+            // Access Token만 삭제
             if (redisTemplate != null) {
                 try {
-                    redisTemplate.delete("at:" + ci);
-                    redisTemplate.delete("mydata:ci:at:" + ci);
+                    if (ci != null) {
+                        redisTemplate.delete("mydata:ci:at:" + ci);
+                        redisTemplate.delete("at:" + ci);
+                    }
                     redisTemplate.delete("mydata:at:ci:" + cleanToken);
                 } catch (Exception e) {
                 }
             }
-            atStore.remove(ci);
+            if (ci != null) {
+                atStore.remove(ci);
+            }
         } else {
             // Refresh Token이거나 전체 폐기인 경우 전체 삭제
-            revokeTokenByCi(ci);
+            if (ci != null) {
+                revokeTokenByCi(ci);
+            } else if (redisTemplate != null) {
+                try {
+                    redisTemplate.delete("mydata:rt:ci:" + cleanToken);
+                } catch (Exception e) {
+                }
+            }
         }
     }
 
@@ -161,10 +184,16 @@ public class MockTokenRedisService {
 
         if (redisTemplate != null) {
             try {
-                redisTemplate.delete("at:" + ci);
-                redisTemplate.delete("rt:" + ci);
+                String oldAccessToken = redisTemplate.opsForValue().get("mydata:ci:at:" + ci);
+                String oldRefreshToken = redisTemplate.opsForValue().get("mydata:ci:rt:" + ci);
+
+                if (oldAccessToken != null) redisTemplate.delete("mydata:at:ci:" + oldAccessToken);
+                if (oldRefreshToken != null) redisTemplate.delete("mydata:rt:ci:" + oldRefreshToken);
+
                 redisTemplate.delete("mydata:ci:at:" + ci);
                 redisTemplate.delete("mydata:ci:rt:" + ci);
+                redisTemplate.delete("at:" + ci);
+                redisTemplate.delete("rt:" + ci);
             } catch (Exception e) {
             }
         }

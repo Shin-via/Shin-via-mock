@@ -6,6 +6,7 @@ import com.via.shinviamock.account.service.MockAccountService;
 import com.via.shinviamock.account.dto.request.*;
 import com.via.shinviamock.account.dto.response.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class MockAccountController {
@@ -22,11 +24,29 @@ public class MockAccountController {
     private final MockAccountService mockAccountService;
 
     @GetMapping("/v2/bank/accounts")
-    public BankAccountsResponse getMyDataAccounts(@RequestParam("org_code") String orgCode,
-                                                   @RequestParam(value = "search_timestamp", required = false) String searchTimestamp,
-                                                   @RequestParam(value = "next_page", required = false) String nextPage,
-                                                   @RequestParam("limit") Integer limit) {
+    public BankAccountsResponse getMyDataAccounts(
+            @RequestHeader("Authorization") String authorization,
+            @RequestHeader("x-api-tran-id") String xApiTranId,
+            @RequestHeader(value = "x-api-type", required = false) String xApiType,
+            @RequestParam("org_code") String orgCode,
+            @RequestParam(value = "search_timestamp", required = false) String searchTimestamp,
+            @RequestParam(value = "next_page", required = false) String nextPage,
+            @RequestParam("limit") int limit) {
+
+
+        String cleanToken = authorization.startsWith("Bearer ") ? authorization.substring(7).trim() : authorization.trim();
+        log.info(cleanToken);
+        log.info(xApiTranId);
+        log.info(xApiType);
+        log.info(orgCode);
+        log.info(searchTimestamp);
+        log.info(nextPage);
+        log.info(""+limit);
+
         BankAccountsRequest request = new BankAccountsRequest();
+        request.setAuthorization(cleanToken);
+        request.setXApiTranId(xApiTranId);
+        request.setXApiType(xApiType);
         request.setOrgCode(orgCode);
         request.setSearchTimestamp(searchTimestamp);
         request.setNextPage(nextPage);
@@ -36,7 +56,11 @@ public class MockAccountController {
     }
 
     @PostMapping("/v2/bank/accounts/deposit/basic")
-    public DepositBasicResponse getDepositBasics(@RequestBody DepositBasicRequest request) {
+    public DepositBasicResponse getDepositBasics(
+            @RequestHeader("authorization") String authorization,
+            @RequestHeader("x-api-tran-id") String xApiTranId,
+            @RequestHeader(value = "x-api-type",required = false) String xApiType,
+            @RequestBody DepositBasicRequest request) {
         validateAccountRequest(request.getOrgCode(), request.getAccountNum(), request.getSearchTimestamp());
         return mockAccountService.getDepositBasics(request);
     }

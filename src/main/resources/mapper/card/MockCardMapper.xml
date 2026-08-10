@@ -25,7 +25,7 @@
         ORDER BY card_id
     </select>
 
-    <select id="selectCardBills" resultType="com.via.shinviamock.card.dto.response.CardBillDto">
+    <select id="selectCardBills" resultType="CardBillDto">
         SELECT
             b.charge_month,
             b.settlement_seq_no,

@@ -52,7 +52,7 @@ public class MockCardController {
         validateAuthorization(authorization);
         String cleanToken = authorization.startsWith("Bearer ") ? authorization.substring(7).trim() : authorization.trim();
         //레디스 에서 ci 데이터를 추출
-        String tokenbuilder = "mydata:at:ci:"+cleanToken;
+        String tokenbuilder = "mydata:at:ci:" + cleanToken;
         String tokenCi = redisTemplate.opsForValue().get(tokenbuilder);
         if (tokenCi != null && !tokenCi.isBlank()) {
             return tokenCi;

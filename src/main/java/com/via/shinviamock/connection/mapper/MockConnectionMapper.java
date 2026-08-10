@@ -15,7 +15,7 @@ public interface MockConnectionMapper {
 
     MockAuthorizationDto selectAuthorizationByCode(@Param("code") String code);
 
-    int updateAuthorizationUsed(@Param("connectionId") Long connectionId);
+    int updateAuthorizationUsed(@Param("connectionId") Long connectionId, @Param("code") String code);
 
     int insertTransaction(MockTransactionDto transaction);
 
