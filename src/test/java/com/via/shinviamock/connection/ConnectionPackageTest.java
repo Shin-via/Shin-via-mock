@@ -38,7 +38,7 @@ class ConnectionPackageTest {
         String state = "test_state_123";
         String tranId = generateTranId();
 
-        String mockCode = mockConnectionService.generateAuthorizationCode(ci, clientId, null, redirectUri, state, tranId);
+        String mockCode = mockConnectionService.generateAuthorizationCode(ci, clientId, "ShinVia", redirectUri, state, tranId);
 
         assertThat(mockCode).isNotNull().startsWith("MOCK_CODE_");
 
@@ -56,9 +56,9 @@ class ConnectionPackageTest {
         String authTranId = generateTranId();
         String tokenTranId = generateTranId();
 
-        String mockCode = mockConnectionService.generateAuthorizationCode(ci, null, "ShinVia", "http://Shinvia", "state", authTranId);
+        String mockCode = mockConnectionService.generateAuthorizationCode(ci, "Shinvia_client_id", "ShinVia", "http://Shinvia", "state", authTranId);
 
-        AuthTokenResponseDto response = mockConnectionService.issueTokenByCode(mockCode, tokenTranId);
+        AuthTokenResponseDto response = mockConnectionService.issueTokenByCode(tokenTranId, "ShinVia", "authorization_code", mockCode, "Shinvia_client_id", "secret", "http://Shinvia");
 
         assertThat(response).isNotNull();
         assertThat(response.getAccessToken()).isNotNull();
@@ -76,10 +76,10 @@ class ConnectionPackageTest {
         String tokenTranId = generateTranId();
         String refreshTranId = generateTranId();
 
-        String mockCode = mockConnectionService.generateAuthorizationCode(ci, null, "ShinVia", "http://Shinvia", "state", authTranId);
-        AuthTokenResponseDto initialTokens = mockConnectionService.issueTokenByCode(mockCode, tokenTranId);
+        String mockCode = mockConnectionService.generateAuthorizationCode(ci, "Shinvia_client_id", "ShinVia", "http://Shinvia", "state", authTranId);
+        AuthTokenResponseDto initialTokens = mockConnectionService.issueTokenByCode(tokenTranId, "ShinVia", "authorization_code", mockCode, "Shinvia_client_id", "secret", "http://Shinvia");
 
-        AuthTokenResponseDto reissuedTokens = mockConnectionService.issueTokenByRefreshToken(initialTokens.getRefreshToken(), refreshTranId);
+        AuthTokenResponseDto reissuedTokens = mockConnectionService.issueTokenByRefreshToken(refreshTranId, "ShinVia", "refresh_token", initialTokens.getRefreshToken(), "Shinvia_client_id", "secret", "N");
 
         assertThat(reissuedTokens).isNotNull();
         assertThat(reissuedTokens.getAccessToken()).isNotNull();
@@ -90,7 +90,7 @@ class ConnectionPackageTest {
     @DisplayName("토큰 폐기(revoke) 검증")
     void revokeTokenTest() {
         String tranId = generateTranId();
-        CommonResponseDto response = mockConnectionService.revokeToken("mock_at_TEST_USER_123", tranId);
+        CommonResponseDto response = mockConnectionService.revokeToken("mock_at_TEST_USER_123", "Shinvia_client_id", "secret", "ShinVia", "0", tranId);
 
         assertThat(response.getRspCode()).isEqualTo("00000");
         assertThat(response.getRspMsg()).isEqualTo("성공");

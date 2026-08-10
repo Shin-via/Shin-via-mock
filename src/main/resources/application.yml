@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: Shinvia-mock
+  datasource:
+    url: jdbc:mysql://YDY-SERVER.iptime.org:10001/mock_mydata
+    username: myuser
+    password: mypassword
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  data:
+    redis:
+      host: localhost
+      port: 10002
+
+server:
+  port: 9090
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true

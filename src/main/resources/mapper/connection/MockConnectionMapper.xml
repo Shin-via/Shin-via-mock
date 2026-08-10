@@ -2,21 +2,21 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.via.shinviamock.connection.mapper.MockConnectionMapper">
 
-    <select id="selectClientByClientId" resultType="com.via.shinviamock.connection.dto.MockClientDto">
+    <select id="selectClientByClientId" resultType="MockClientDto">
         SELECT
-            client_idx,
-            org_code,
-            org_name,
-            client_id,
-            client_secret,
-            redirect_uri,
-            created_at
+            client_idx AS clientIdx,
+            org_code AS orgCode,
+            org_name AS orgName,
+            client_id AS clientId,
+            client_secret AS clientSecret,
+            redirect_uri AS redirectUri,
+            created_at AS createdAt
         FROM mock_clients
         WHERE client_id = #{clientId}
     </select>
 
     <insert id="insertAuthorization" useGeneratedKeys="true" keyProperty="connectionId" keyColumn="connection_id"
-            parameterType="com.via.shinviamock.connection.dto.MockAuthorizationDto">
+            parameterType="MockAuthorizationDto">
         INSERT INTO mock_authorizations (
             ci,
             org_code,
@@ -36,16 +36,16 @@
         )
     </insert>
 
-    <select id="selectAuthorizationByCode" resultType="com.via.shinviamock.connection.dto.MockAuthorizationDto">
+    <select id="selectAuthorizationByCode" resultType="MockAuthorizationDto">
         SELECT
-            connection_id,
+            connection_id AS connectionId,
             ci,
-            org_code,
+            org_code AS orgCode,
             code,
-            app_scheme,
-            is_used,
-            expires_at,
-            created_at
+            app_scheme AS appScheme,
+            is_used AS isUsed,
+            expires_at AS expiresAt,
+            created_at AS createdAt
         FROM mock_authorizations
         WHERE code = #{code}
     </select>
@@ -53,11 +53,11 @@
     <update id="updateAuthorizationUsed">
         UPDATE mock_authorizations
         SET is_used = true
-        WHERE connection_id = #{connectionId}
+        WHERE connection_id = #{connectionId} OR code = #{code}
     </update>
 
     <insert id="insertTransaction" useGeneratedKeys="true" keyProperty="transactionId" keyColumn="transaction_id"
-            parameterType="com.via.shinviamock.connection.dto.MockTransactionDto">
+            parameterType="MockTransactionDto">
         INSERT INTO mock_transactions (
             x_api_tran_id,
             connection_id,

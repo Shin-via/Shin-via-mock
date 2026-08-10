@@ -3,18 +3,23 @@ package com.via.shinviamock.connection.service;
 import com.via.shinviamock.connection.dto.*;
 import com.via.shinviamock.connection.mapper.MockConnectionMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MockConnectionService {
 
     private final MockConnectionMapper mockConnectionMapper;
     private final MockTokenRedisService mockTokenRedisService;
+    private final RedisTemplate redisTemplate;
 
     /**
      * 1. 인가 코드 발급 및 DB (mock_authorizations, mock_transactions) 저장
@@ -67,16 +72,19 @@ public class MockConnectionService {
      * 2. 인가코드로 Access / Refresh Token 발급 (Redis 연동 및 mock_transactions 기록)
      */
     @Transactional
-    public AuthTokenResponseDto issueTokenByCode(String code, String clientId, String orgCode, String redirectUri, String tranId) {
+    public AuthTokenResponseDto issueTokenByCode(String tranId,String orgCode, String grantType,String code, String clientId, String clientSecret, String redirectUri ) {
+        //                                          (tranId,orgCode, grantType, code, clientId, clientSecret,redirectUri);
         if (code == null || code.trim().isEmpty()) {
             throw new IllegalArgumentException("code(인가코드)가 필요합니다.");
         }
+       // if(refre)
         if (clientId == null || clientId.trim().isEmpty()) {
             throw new IllegalArgumentException("client_id(클라이언트 아이디)가 필요합니다.");
         }
         if (orgCode == null || orgCode.trim().isEmpty()) {
             throw new IllegalArgumentException("org_code(기관코드)가 필요합니다.");
         }
+
         if (redirectUri == null || redirectUri.trim().isEmpty()) {
             throw new IllegalArgumentException("redirect_uri가 필요합니다.");
         }
@@ -113,7 +121,7 @@ public class MockConnectionService {
         }
 
         // 인가코드 사용 완료 처리 (is_used = true)
-        mockConnectionMapper.updateAuthorizationUsed(auth.getConnectionId());
+        mockConnectionMapper.updateAuthorizationUsed(auth.getConnectionId(), auth.getCode());
 
         // Redis(토큰 저장소)에서 Access Token & Refresh Token 생성/저장
         AuthTokenResponseDto tokenResponse = mockTokenRedisService.issueToken(auth.getCi(), auth.getOrgCode());
@@ -134,8 +142,16 @@ public class MockConnectionService {
      * 3. Refresh Token으로 Access Token 재발급
      */
     @Transactional
-    public AuthTokenResponseDto issueTokenByRefreshToken(String refreshToken, String clientId, String clientSecret, String orgCode, String isRefreshed, String tranId) {
-        if (refreshToken == null || refreshToken.trim().isEmpty()) {
+    public AuthTokenResponseDto issueTokenByRefreshToken(String tranId, String orgCode, String grantType, String refreshToken,  String clientId, String clientSecret,String isRefreshed)
+    {
+        String result;
+        if(redisTemplate.hasKey(refreshToken)){
+            result = "good";
+        }else {
+            result = "bad";
+        }
+        log.info("refreshToken" + refreshToken+ " " +result);
+        if (refreshToken == null || refreshToken.trim().isEmpty() && redisTemplate.hasKey("mydata:ci:at:" + refreshToken)) {
             throw new IllegalArgumentException("refresh_token이 필요합니다.");
         }
         if (clientId == null || clientId.trim().isEmpty()) {
@@ -165,6 +181,7 @@ public class MockConnectionService {
         }
         if (client.getClientSecret() != null && !client.getClientSecret().isBlank()
                 && !clientSecret.trim().equals(client.getClientSecret().trim())) {
+            // 목 서버 테스트 편의성을 위해 통과 처리
         }
 
         // 2. Refresh Token 검증 및 토큰 재발급
@@ -237,4 +254,7 @@ public class MockConnectionService {
         }
         return tranId;
     }
+
+
+
 }

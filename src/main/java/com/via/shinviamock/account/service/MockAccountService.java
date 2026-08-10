@@ -8,17 +8,20 @@ import com.via.shinviamock.account.dto.response.*;
 import com.via.shinviamock.account.dto.mydata.*;
 import com.via.shinviamock.account.mapper.MockAccountMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MockAccountService {
-
     private final MockAccountMapper mockAccountMapper;
+    private final StringRedisTemplate redisTemplate;
 
     public AccountBalanceResponse getAccountBalance(String bankTranId, String fintechUseNum, String bankCodeStd) {
         AccountBalanceResponse response = mockAccountMapper.selectAccountByFintechUseNum(fintechUseNum);
@@ -51,8 +54,11 @@ public class MockAccountService {
     }
 
     public BankAccountsResponse getMyDataAccounts(BankAccountsRequest request) {
+
+        String ci = redisTemplate.opsForValue().get("mydata:at:ci:"+request.getAuthorization());
+        log.info("ci :"+ci);
         int offset = pageOffset(request.getNextPage());
-        List<AccountItem> accounts = mockAccountMapper.selectMyDataAccounts(request.getOrgCode(), request.getLimit() + 1, offset);
+        List<AccountItem> accounts = mockAccountMapper.selectMyDataAccounts(Integer.parseInt(ci), request.getLimit() + 1, offset);
         BankAccountsResponse response = success(new BankAccountsResponse());
         response.setSearchTimestamp("0");
         response.setRegDate(mockAccountMapper.selectMyDataRegDate(request.getOrgCode()));

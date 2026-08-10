@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.via.shinviamock.account.mapper.MockAccountMapper">
 
-    <select id="selectAccountByFintechUseNum" resultType="com.via.shinviamock.account.dto.response.AccountBalanceResponse">
+    <select id="selectAccountByFintechUseNum" resultType="AccountBalanceResponse">
         SELECT
             ci AS user_seq_no,
             bank_code_tran,
@@ -15,7 +15,7 @@
         WHERE fintech_use_num = #{fintechUseNum}
     </select>
 
-    <select id="selectTransactions" resultType="com.via.shinviamock.account.dto.response.TransactionDto">
+    <select id="selectTransactions" resultType="TransactionDto">
         SELECT
             t.tran_date,
             t.tran_time,
@@ -53,10 +53,10 @@
           </choose>
     </select>
 
-    <select id="selectMyDataAccounts" resultType="com.via.shinviamock.account.dto.mydata.AccountItem">
-        SELECT account_num, is_consent, seqno, is_foreign_deposit, prod_name, is_minus, account_type, account_status
+    <select id="selectMyDataAccounts" resultType="AccountItem">
+        SELECT account_num, is_consent, seqno, is_foreign_deposit, prod_name, is_minus, account_type, account_status,ci
         FROM mock_account
-        WHERE org_code = #{orgCode}
+        WHERE ci = #{ci}
         ORDER BY account_num, seqno
         LIMIT #{limit} OFFSET #{offset}
     </select>
@@ -69,7 +69,7 @@
         SELECT DATE_FORMAT(MIN(reg_date), '%Y%m%d') FROM mock_account WHERE org_code = #{orgCode}
     </select>
 
-    <select id="selectDepositBasics" resultType="com.via.shinviamock.account.dto.mydata.DepositBasicItem">
+    <select id="selectDepositBasics" resultType="DepositBasicItem">
         SELECT b.currency_code, b.saving_method,
                DATE_FORMAT(b.issue_date, '%Y%m%d') AS issue_date,
                DATE_FORMAT(b.exp_date, '%Y%m%d') AS exp_date,
@@ -80,7 +80,7 @@
         <if test="seqno != null and seqno != ''">AND b.seqno = #{seqno}</if>
     </select>
 
-    <select id="selectDepositDetails" resultType="com.via.shinviamock.account.dto.mydata.DepositDetailItem">
+    <select id="selectDepositDetails" resultType="DepositDetailItem">
         SELECT d.currency_code, d.balance_amt, d.withdrawable_amt, d.offered_rate, d.last_paid_in_cnt
         FROM mock_account_detail d
         JOIN mock_account a ON a.account_num = d.account_num AND a.seqno = d.seqno
@@ -88,7 +88,7 @@
         <if test="seqno != null and seqno != ''">AND d.seqno = #{seqno}</if>
     </select>
 
-    <select id="selectDepositTransactions" resultType="com.via.shinviamock.account.dto.mydata.DepositTransactionItem">
+    <select id="selectDepositTransactions" resultType="DepositTransactionItem">
         SELECT t.trans_dtime, t.trans_no, t.trans_type, t.trans_class, t.currency_code,
                t.trans_amt, t.balance_amt, t.paid_in_cnt, t.trans_memo,
                t.category_code AS category

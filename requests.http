@@ -3,12 +3,19 @@ GET http://localhost:9090/v2/oauth/2.0/authorize?response_type=code&client_id=Sh
 x-user-ci: 1
 x-api-tran-id: MOCK_TRAN_100000001
 
-### 0-2. 자산연동 OAuth 2.0: 토큰 발급 요청 (POST)
+### 0-2. 자산연동 OAuth 2.0: 토큰 최초 발급 요청 (POST - grant_type=authorization_code)
 POST http://localhost:9090/v2/oauth/2.0/token
 Content-Type: application/x-www-form-urlencoded
 x-api-tran-id: MOCK_TRAN_100000002
 
 grant_type=authorization_code&code=MOCK_CODE_REPLACE_WITH_CODE&client_id=Shinvia_client_id&org_code=ShinVia&redirect_uri=https://oauth.pstmn.io/v1/callback
+
+### 0-3. 자산연동 OAuth 2.0: 토큰 갱신 요청 (POST - grant_type=refresh_token)
+POST http://localhost:9090/v2/oauth/2.0/token
+Content-Type: application/x-www-form-urlencoded
+x-api-tran-id: MOCK_TRAN_100000003
+
+grant_type=refresh_token&refresh_token=MOCK_REFRESH_TOKEN_REPLACE&client_id=Shinvia_client_id&client_secret=secret&org_code=ShinVia&is_refreshed=N
 
 ### 1-1. 카드 목록 조회 (ci = 1, 신비아)
 GET http://localhost:9090/v2.0/cards?bank_tran_id=T1001&ci=1&bank_code_std=004&member_bank_code=004
