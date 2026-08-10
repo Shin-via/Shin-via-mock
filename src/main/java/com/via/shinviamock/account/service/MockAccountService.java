@@ -20,7 +20,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class MockAccountService {
-
     private final MockAccountMapper mockAccountMapper;
     private final StringRedisTemplate redisTemplate;
 

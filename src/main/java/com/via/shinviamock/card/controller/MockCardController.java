@@ -18,7 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequiredArgsConstructor
 public class MockCardController {
-
     private final MockCardService mockCardService;
     private final MockTokenRedisService mockTokenRedisService;
     private final StringRedisTemplate redisTemplate;
