@@ -25,7 +25,7 @@ public interface MockAccountMapper {
                                              @Param("toTime") String toTime,
                                              @Param("sortOrder") String sortOrder);
 
-    List<AccountItem> selectMyDataAccounts(@Param("orgCode") String orgCode, @Param("limit") int limit,
+    List<AccountItem> selectMyDataAccounts(@Param("ci") int ci, @Param("limit") int limit,
                                             @Param("offset") int offset);
     int countMyDataAccounts(@Param("orgCode") String orgCode);
     String selectMyDataRegDate(@Param("orgCode") String orgCode);
