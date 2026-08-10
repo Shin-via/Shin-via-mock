@@ -29,7 +29,7 @@ public class MockTokenRedisService {
      * Access Token & Refresh Token 발급 및 보관 (1 CI당 1개 토큰 유지)
      */
     public AuthTokenResponseDto issueToken(String ci, String orgCode) {
-        String effectiveCi = (ci != null && !ci.isBlank()) ? ci : "USER";
+        String effectiveCi = ci ;
 
         String accessToken = "mock_at_" + effectiveCi + "_" + UUID.randomUUID().toString().replace("-", "");
         String refreshToken = "mock_rt_" + effectiveCi + "_" + UUID.randomUUID().toString().replace("-", "");
