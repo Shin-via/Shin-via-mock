@@ -2,7 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.via.shinviamock.account.mapper.MockAccountMapper">
 
-    <select id="selectAccountByFintechUseNum" resultType="AccountBalanceResponse">
+
+    <select id="selectAccountByFintechUseNum" resultType="com.via.shinviamock.account.dto.response.AccountBalanceResponse">
         SELECT
             ci AS user_seq_no,
             bank_code_tran,
