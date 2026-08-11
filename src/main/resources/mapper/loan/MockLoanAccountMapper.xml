@@ -1,0 +1,30 @@
+<?xml version= "1.0" encoding= "UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace = "com.via.shinviamock.loan.mapper.MockLoanAccountMapper">
+
+    <select id = "selectMyDataLoanAccounts" resultType="com.via.shinviamock.loan.dto.mydata.LoanAccountItem">
+        SELECT
+            loan_type,
+            principal_amount,
+            current_balance,
+            interest_rate,
+            rate_type,
+            repayment_type,
+            disbursed_at,
+            maturity_at,
+            loan_status,
+            data_as_of_at,
+            prepayment_fee_rate,
+            prepayment_fee_end_date
+        FROM mock_loan_account
+        WHERE ci = #{ci}
+        AND org_code = #{orgCode}
+        ORDER BY mock_loan_account_id
+        LIMIT #{limit}
+        OFFSET #{offset}
+
+
+    </select>
+</mapper>
