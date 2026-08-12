@@ -6,6 +6,7 @@
 
     <select id = "selectMyDataLoanAccounts" resultType="com.via.shinviamock.loan.dto.mydata.LoanAccountItem">
         SELECT
+            external_loan_key,
             loan_type,
             principal_amount,
             current_balance,
