@@ -5,7 +5,7 @@
     <select id="selectCardList" resultType="com.via.shinviamock.card.dto.response.CardInfoDto">
         SELECT
             card_id,
-            bank_code_std,
+            LPAD(bank_code_std, 10, '0') AS institution_id,
             card_num_masked,
             card_name,
             card_member_type
@@ -43,7 +43,10 @@
     </select>
 
     <select id="selectMyDataCards" resultType="com.via.shinviamock.card.dto.mydata.CardItem">
-        SELECT card_id, card_num_masked AS card_num, card_name
+        SELECT card_id,
+               LPAD(bank_code_std, 10, '0') AS institution_id,
+               card_num_masked AS card_num,
+               card_name
         FROM mock_card_info
         WHERE ci = #{ci}
         ORDER BY card_id

@@ -6,6 +6,7 @@ import lombok.Data;
 public class CardInfoDto {
 
     private String cardId;
+    private String institutionId;
     private String cardNumMasked;
     private String cardName;
     private String cardMemberType;

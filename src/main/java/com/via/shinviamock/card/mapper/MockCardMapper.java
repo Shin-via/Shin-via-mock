@@ -11,8 +11,6 @@ import java.util.List;
 public interface MockCardMapper {
 
     List<CardInfoDto> selectCardList(@Param("ci") String ci);
-    List<CardInfoDto> selectCardListByBank(@Param("ci") String ci,
-                                     @Param("bankCodeStd") String bankCodeStd);
     List<CardBillDto> selectCardBills(@Param("ci") String ci,
                                        @Param("bankCodeStd") String bankCodeStd,
                                        @Param("fromMonth") String fromMonth,

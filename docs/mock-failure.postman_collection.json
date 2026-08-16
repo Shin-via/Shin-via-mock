@@ -1,0 +1,178 @@
+{
+  "info": {
+    "_postman_id": "aeb91f63-59f4-4c1b-9f33-9e1e6998e551",
+    "name": "Shinvia Mock - Failure Cases",
+    "description": "Mock OAuth 및 카드 API의 실패 케이스 검증용 컬렉션입니다. 각 요청은 의도적으로 잘못된 헤더 또는 파라미터를 전송하며, Tests 탭에서 HTTP 상태 코드를 검증합니다.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:9090" },
+    { "key": "org_code", "value": "004" },
+    { "key": "client_id", "value": "mock-card-client" },
+    { "key": "client_secret", "value": "mock-card-secret" },
+    { "key": "redirect_uri", "value": "http://localhost:3000/callback" },
+    { "key": "ci", "value": "TEST_CI_1000000001" }
+  ],
+  "item": [
+    {
+      "name": "OAuth 실패",
+      "item": [
+        {
+          "name": "인가 코드 - x-user-ci 헤더 누락 (400)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-tran-id", "value": "FAIL-AUTH-001" }],
+            "url": {
+              "raw": "{{base_url}}/v2/oauth/2.0/authorize?org_code={{org_code}}&response_type=code&client_id={{client_id}}&redirect_uri={{redirect_uri}}",
+              "host": ["{{base_url}}"],
+              "path": ["v2", "oauth", "2.0", "authorize"],
+              "query": [
+                { "key": "org_code", "value": "{{org_code}}" },
+                { "key": "response_type", "value": "code" },
+                { "key": "client_id", "value": "{{client_id}}" },
+                { "key": "redirect_uri", "value": "{{redirect_uri}}" }
+              ]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+        },
+        {
+          "name": "인가 코드 - 등록되지 않은 client_id (400)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-user-ci", "value": "{{ci}}" },
+              { "key": "x-api-tran-id", "value": "FAIL-AUTH-002" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v2/oauth/2.0/authorize?org_code={{org_code}}&response_type=code&client_id=unknown-client&redirect_uri={{redirect_uri}}",
+              "host": ["{{base_url}}"],
+              "path": ["v2", "oauth", "2.0", "authorize"],
+              "query": [
+                { "key": "org_code", "value": "{{org_code}}" },
+                { "key": "response_type", "value": "code" },
+                { "key": "client_id", "value": "unknown-client" },
+                { "key": "redirect_uri", "value": "{{redirect_uri}}" }
+              ]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+        },
+        {
+          "name": "토큰 발급 - grant_type 누락 (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": { "mode": "urlencoded", "urlencoded": [{ "key": "client_id", "value": "{{client_id}}", "type": "text" }] },
+            "url": { "raw": "{{base_url}}/v2/oauth/2.0/token", "host": ["{{base_url}}"], "path": ["v2", "oauth", "2.0", "token"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+        },
+        {
+          "name": "토큰 발급 - 지원하지 않는 grant_type (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": { "mode": "urlencoded", "urlencoded": [{ "key": "grant_type", "value": "password", "type": "text" }] },
+            "url": { "raw": "{{base_url}}/v2/oauth/2.0/token", "host": ["{{base_url}}"], "path": ["v2", "oauth", "2.0", "token"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+        },
+        {
+          "name": "토큰 발급 - 존재하지 않는 인가 코드 (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "authorization_code", "type": "text" },
+                { "key": "client_id", "value": "{{client_id}}", "type": "text" },
+                { "key": "org_code", "value": "{{org_code}}", "type": "text" },
+                { "key": "redirect_uri", "value": "{{redirect_uri}}", "type": "text" },
+                { "key": "code", "value": "MOCK_CODE_DOES_NOT_EXIST", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/v2/oauth/2.0/token", "host": ["{{base_url}}"], "path": ["v2", "oauth", "2.0", "token"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+        },
+        {
+          "name": "토큰 갱신 - 잘못된 refresh token (400)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "grant_type", "value": "refresh_token", "type": "text" },
+                { "key": "client_id", "value": "{{client_id}}", "type": "text" },
+                { "key": "client_secret", "value": "{{client_secret}}", "type": "text" },
+                { "key": "org_code", "value": "{{org_code}}", "type": "text" },
+                { "key": "is_refreshed", "value": "N", "type": "text" },
+                { "key": "refresh_token", "value": "mock_rt_invalid_token", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{base_url}}/v2/oauth/2.0/token", "host": ["{{base_url}}"], "path": ["v2", "oauth", "2.0", "token"] }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+        }
+      ]
+    },
+    {
+      "name": "카드 API 실패",
+      "item": [
+        {
+          "name": "카드 목록 - Authorization 헤더 누락 (400)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-api-tran-id", "value": "FAIL-CARD-001" },
+              { "key": "x-api-type", "value": "CARD" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v2.0/cards?org_code={{org_code}}&search_timestamp=0&limit=10",
+              "host": ["{{base_url}}"], "path": ["v2.0", "cards"],
+              "query": [{ "key": "org_code", "value": "{{org_code}}" }, { "key": "search_timestamp", "value": "0" }, { "key": "limit", "value": "10" }]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+        },
+        {
+          "name": "카드 목록 - 유효하지 않은 access token (401)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer mock_at_invalid_token" },
+              { "key": "x-api-tran-id", "value": "FAIL-CARD-002" },
+              { "key": "x-api-type", "value": "CARD" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v2.0/cards?org_code={{org_code}}&search_timestamp=0&limit=10",
+              "host": ["{{base_url}}"], "path": ["v2.0", "cards"],
+              "query": [{ "key": "org_code", "value": "{{org_code}}" }, { "key": "search_timestamp", "value": "0" }, { "key": "limit", "value": "10" }]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"] } }]
+        },
+        {
+          "name": "카드 목록 - limit 파라미터 누락 (400)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer mock_at_invalid_token" },
+              { "key": "x-api-tran-id", "value": "FAIL-CARD-003" },
+              { "key": "x-api-type", "value": "CARD" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v2.0/cards?org_code={{org_code}}&search_timestamp=0",
+              "host": ["{{base_url}}"], "path": ["v2.0", "cards"],
+              "query": [{ "key": "org_code", "value": "{{org_code}}" }, { "key": "search_timestamp", "value": "0" }]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"] } }]
+        }
+      ]
+    }
+  ]
+}

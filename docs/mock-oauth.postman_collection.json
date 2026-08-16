@@ -1,0 +1,90 @@
+{
+  "info": {
+    "_postman_id": "fc917cfd-6e43-4c42-8b8c-aea20fd4165c",
+    "name": "Shinvia Mock - OAuth Token Flow",
+    "description": "1) 인가 코드 발급 → 2) access/refresh token 발급 → 3) refresh token 갱신 순서로 실행합니다. 각 단계의 결과를 컬렉션 변수에 자동 저장합니다.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:9090" },
+    { "key": "ci", "value": "TEST_CI_1000000001" },
+    { "key": "org_code", "value": "004" },
+    { "key": "client_id", "value": "mock-card-client" },
+    { "key": "client_secret", "value": "mock-card-secret" },
+    { "key": "redirect_uri", "value": "http://localhost:3000/callback" },
+    { "key": "authorization_code", "value": "" },
+    { "key": "access_token", "value": "" },
+    { "key": "refresh_token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. 인가 코드 발급",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "x-user-ci", "value": "{{ci}}" },
+          { "key": "x-api-tran-id", "value": "POSTMAN-OAUTH-AUTHORIZE" }
+        ],
+        "url": "{{base_url}}/v2/oauth/2.0/authorize?org_code={{org_code}}&response_type=code&client_id={{client_id}}&redirect_uri={{redirect_uri}}&state=postman"
+      },
+      "protocolProfileBehavior": { "followRedirects": false },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('302 Found', () => pm.response.to.have.status(302));",
+        "const location = pm.response.headers.get('Location');",
+        "pm.test('Location에 인가 코드 포함', () => pm.expect(location).to.include('code='));",
+        "const code = new URL(location).searchParams.get('code');",
+        "pm.collectionVariables.set('authorization_code', code);"
+      ] } }]
+    },
+    {
+      "name": "2. Access · Refresh Token 발급",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }, { "key": "x-api-tran-id", "value": "POSTMAN-OAUTH-TOKEN" }],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "authorization_code", "type": "text" },
+            { "key": "client_id", "value": "{{client_id}}", "type": "text" },
+            { "key": "org_code", "value": "{{org_code}}", "type": "text" },
+            { "key": "redirect_uri", "value": "{{redirect_uri}}", "type": "text" },
+            { "key": "code", "value": "{{authorization_code}}", "type": "text" }
+          ]
+        },
+        "url": "{{base_url}}/v2/oauth/2.0/token"
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "pm.test('access/refresh token 수신', () => { pm.expect(body.access_token).to.be.a('string').and.not.empty; pm.expect(body.refresh_token).to.be.a('string').and.not.empty; });",
+        "pm.collectionVariables.set('access_token', body.access_token);",
+        "pm.collectionVariables.set('refresh_token', body.refresh_token);"
+      ] } }]
+    },
+    {
+      "name": "3. Refresh Token으로 재발급",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/x-www-form-urlencoded" }, { "key": "x-api-tran-id", "value": "POSTMAN-OAUTH-REFRESH" }],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            { "key": "grant_type", "value": "refresh_token", "type": "text" },
+            { "key": "client_id", "value": "{{client_id}}", "type": "text" },
+            { "key": "client_secret", "value": "{{client_secret}}", "type": "text" },
+            { "key": "org_code", "value": "{{org_code}}", "type": "text" },
+            { "key": "is_refreshed", "value": "N", "type": "text" },
+            { "key": "refresh_token", "value": "{{refresh_token}}", "type": "text" }
+          ]
+        },
+        "url": "{{base_url}}/v2/oauth/2.0/token"
+      },
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('200 OK', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "pm.collectionVariables.set('access_token', body.access_token);",
+        "pm.collectionVariables.set('refresh_token', body.refresh_token);"
+      ] } }]
+    }
+  ]
+}

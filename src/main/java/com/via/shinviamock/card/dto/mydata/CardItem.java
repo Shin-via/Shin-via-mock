@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
         isGetterVisibility = JsonAutoDetect.Visibility.NONE)
 public class CardItem {
     private String cardId;
+    private String institutionId;
     private String cardNum;
     private String cardName;
     @JsonProperty("is_consent")
