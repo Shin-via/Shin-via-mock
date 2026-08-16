@@ -78,7 +78,7 @@ public class MockTokenRedisService {
                 .build();
     }
 
-     //Refresh Token을 이용한 Access Token 재발급
+    //Refresh Token을 이용한 Access Token 재발급
     public AuthTokenResponseDto refreshAccessToken(String refreshToken, String orgCode) {
         if (refreshToken == null || refreshToken.isBlank()) {
             throw new IllegalArgumentException("유효하지 않거나 만료된 refresh_token입니다.");
@@ -113,12 +113,12 @@ public class MockTokenRedisService {
     }
 
 
-     // Access Token 검증
+    // Access Token 검증
     public boolean validateAccessToken(String accessToken) {
         return getCiByAccessToken(accessToken) != null;
     }
 
-     // Access Token에서 매핑된 CI 추출 (유효하지 않거나 만료 시 null 반환)
+    // Access Token에서 매핑된 CI 추출 (유효하지 않거나 만료 시 null 반환)
     public String getCiByAccessToken(String accessToken) {
         if (accessToken == null) return null;
         String cleanToken = accessToken.startsWith("Bearer ") ? accessToken.substring(7) : accessToken;
